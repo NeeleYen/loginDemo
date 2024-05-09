@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>
+        <form id="loginForm" action="" method="post">
+
+            <!--如果登入失敗顯示在這裡-->
+            <div th:text="${message}"></div>
+            
+            <div class="login">
+                <label for="email">信箱：</label>
+                <input type="text" id="email" name="email"></input>
+                <br>
+                <label for="password">密碼：</label>
+                <input type="password" id="password" name="password">
+            </div>
+
+            <div class="submit">
+                <input type="submit" value="送出">
+            </div>
+            
+        </form>
+
+    </div>
+
+    <script>
+        //將表單做成Json送伺服器
+        document.getElementById('loginForm').addEventListener('submit', function(event){
+            //防止表單默認提交行為
+            event.preventDefault();
+
+            //表單資料
+            var formData = {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+
+            //表單資料轉為Json格式
+            var jsonFormData = JSON.stringify(formData);
+
+            // 獲取當前網站的原始 URL
+            var origin = window.location.origin;
+
+            //發送Json到後端
+            fetch(origin + '/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: jsonFormData
+            })
+            .then(response => {
+
+                return response.json();
+            })
+            .then(data => {
+
+                //是否登入成功
+                var message = data.message;
+                //跳到哪一頁
+                var url = data.url;
+                
+
+                if (message === 'success') {
+                    
+                    var userId = data.userId;
+                    
+                    //打@GetMapping("/loginSuccess/{userId}")的 Controller
+                    window.location.href = origin + url + userId;
+                    
+                } else {
+                    
+                    //打@GetMapping("/")的 Controller
+                    window.location.href = origin + url + '?message=' + message;
+                    
+                }
+
+
+            })
+            .catch(error =>{
+                console.error('Fetch Error:', error);
+            });
+
+        });
+
+    </script>
+
+
+</body>
+</html>
